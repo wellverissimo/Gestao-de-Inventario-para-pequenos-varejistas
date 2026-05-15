@@ -3,12 +3,10 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SEGURANÇA: Em produção, use variáveis de ambiente
 SECRET_KEY = 'django-insecure-sua-chave-aqui'
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['jbtintas.pythonanywhere.com']
 
-# Definição dos Apps: Adicione o seu app 'inventario' aqui
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -16,19 +14,48 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'inventario', 
+    'inventario',
 ]
 
-# Configuração do Banco de Dados conforme seu plano
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'jb_tintas.db', # O arquivo que você já tem
+        'NAME': BASE_DIR / 'jb_tintas.db',
     }
 }
 
-# Configurações de Idioma para o Brasil
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
+ROOT_URLCONF = 'jb_sistema.urls'
+WSGI_APPLICATION = 'jb_sistema.wsgi.application'
+
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'static'
