@@ -5,7 +5,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-sua-chave-aqui'
 DEBUG = True
-ALLOWED_HOSTS = ['jbtintas.pythonanywhere.com']
+ALLOWED_HOSTS = ['jbtintas.pythonanywhere.com', '127.0.0.1', 'localhost']
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
