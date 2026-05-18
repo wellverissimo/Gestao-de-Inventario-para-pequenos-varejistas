@@ -2,13 +2,13 @@
 
 {% block content %}
 <div class="card shadow-sm border-0">
-    <div class="card-header bg-warning text-dark fw-bold">📦 ENTRADA DE CARGA (BIPADOR)</div>
+    <div class="card-header text-white fw-bold" style="background-color: #101820; border-bottom: 3px solid #C60C30;">📦 ENTRADA DE CARGA (BIPADOR)</div>
     <div class="card-body p-4 text-center">
         <h6 class="text-muted mb-3">Passe o leitor no código de barras do produto</h6>
-        <input type="text" id="bipador" class="form-control form-control-lg text-center fw-bold" placeholder="Aguardando código..." onkeyup="processarBip(event, this.value)">
-        
+        <input type="text" id="bipador" class="form-control form-control-lg text-center fw-bold border-secondary" placeholder="Aguardando código..." onkeyup="processarBip(event, this.value)">
+
         <table class="table mt-4 table-bordered">
-            <thead class="table-dark">
+            <thead class="table-light">
                 <tr>
                     <th>Cód. Barras</th>
                     <th>Produto</th>
@@ -17,8 +17,8 @@
             </thead>
             <tbody id="listaEntrada"></tbody>
         </table>
-        
-        <button class="btn btn-success btn-lg mt-3 w-100 fw-bold" onclick="efetivarEntrada()">✅ EFETIVAR ENTRADA NO ESTOQUE</button>
+
+        <button class="btn btn-lg mt-3 w-100 fw-bold text-white shadow-sm" style="background-color: #00C853; border: none;" onclick="efetivarEntrada()">✅ EFETIVAR ENTRADA NO ESTOQUE</button>
     </div>
 </div>
 
@@ -43,7 +43,7 @@
     function renderLista() {
         let html = '';
         itensEntrada.forEach(i => {
-            html += `<tr><td>${i.codigo}</td><td class="text-start">${i.nome}</td><td class="fw-bold">${i.qtd}</td></tr>`;
+            html += `<tr><td>${i.codigo}</td><td class="text-start">${i.nome}</td><td class="fw-bold" style="color: #00C853;">${i.qtd}</td></tr>`;
         });
         document.getElementById('listaEntrada').innerHTML = html;
     }
@@ -54,7 +54,13 @@
             headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
             body: JSON.stringify({itens: itensEntrada})
         }).then(res => res.json()).then(data => {
-            if (data.status === 'sucesso') { alert("Estoque atualizado!"); location.reload(); }
+            if(data.status === 'sucesso') {
+                alert("Entrada efetivada com sucesso!");
+                itensEntrada = [];
+                renderLista();
+            } else {
+                alert("Erro ao salvar: " + data.mensagem);
+            }
         });
     }
 </script>

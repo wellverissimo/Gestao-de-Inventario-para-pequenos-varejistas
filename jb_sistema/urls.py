@@ -48,7 +48,7 @@ urlpatterns = [
 
     # 🔄 Rotas de Compatibilidade (Fallbacks)
     path('cupom/<int:id>/', views.imprimir_cupom),
-    path('cupom-a4/<int:id>/', views.imprimir_cupom_a4),
+    path('cupom_a4/<int:id>/', views.imprimir_cupom_a4), # <-- O Erro estava aqui: alterado de cupom-a4 para cupom_a4
 
     path('gerencia/colaboradores/', views.tela_colaboradores, name='tela_colaboradores'),
     path('gerencia/colaboradores/salvar/', views.salvar_colaborador, name='salvar_colaborador'),
