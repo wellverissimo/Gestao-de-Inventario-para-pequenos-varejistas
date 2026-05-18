@@ -145,7 +145,8 @@
             return;
         }
 
-        fetch(`/api/buscar_produtos/?q=${encodeURIComponent(queryFinal)}`)
+        // CORREÇÃO: underline alterado para traço (-) para bater com as URLs do Django
+        fetch(`/api/buscar-produtos/?q=${encodeURIComponent(queryFinal)}`)
             .then(res => res.json())
             .then(data => {
                 let html = '';
@@ -255,7 +256,8 @@
         areaResgate.style.display = 'none';
 
         if (clienteNome) {
-            fetch(`/api/consultar_pontos/?cliente=${encodeURIComponent(clienteNome)}`)
+            // CORREÇÃO: underline alterado para traço (-) para bater com as URLs do Django
+            fetch(`/api/consultar-pontos/?cliente=${encodeURIComponent(clienteNome)}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.pontos_utilizaveis > 0) {
@@ -314,7 +316,8 @@
             carrinho: carrinho
         };
 
-        fetch('/api/salvar_venda/', {
+        // CORREÇÃO: underline alterado para traço (-) para bater com as URLs do Django
+        fetch('/api/salvar-venda/', {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
             body: JSON.stringify(pacote)
@@ -323,7 +326,8 @@
                 if(statusSelecionado === 'ORCAMENTO') {
                     alert('📝 Orçamento gerado com sucesso! Nenhum estoque ou ponto foi alterado.');
                 }
-                window.open(`/gerencia/relatorios/imprimir/${data.venda_id}/`, '_blank', 'width=400,height=600');
+                // CORREÇÃO: Rota de impressão ajustada para bater com o padrão ouro cadastrado no urls.py
+                window.open(`/venda/cupom/${data.venda_id}/`, '_blank', 'width=400,height=600');
                 location.reload();
             } else {
                 alert("Erro ao salvar a operação: " + data.mensagem);

@@ -2,9 +2,11 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q
 from .models import Produtos, Clientes, Vendas, Familia, Marca, ConfiguracaoPontos, Usuarios
 from . import services
+
 
 # ==========================================
 # 🔐 AUTENTICAÇÃO (LOGIN / LOGOUT)
@@ -74,7 +76,6 @@ def api_buscar_produtos(request):
     produtos = Produtos.objects.exclude(status='INATIVO')
 
     if query:
-        # Divide os termos digitados por palavras isoladas para efetuar a busca cruzada (Lógica AND)
         palavras = query.split()
         for palavra in palavras:
             produtos = produtos.filter(
@@ -184,7 +185,7 @@ def salvar_produto(request):
             produto.marca = marca_obj
             produto.familia = familia_obj
             produto.save()
-            messages.success(request, f"Produto '{nome}' updated successfully!")
+            messages.success(request, f"Produto '{nome}' atualizado com sucesso!")
         else:
             Produtos.objects.create(
                 nome=nome,
@@ -213,6 +214,40 @@ def tela_entrada_carga(request):
     if 'usuario_logado' not in request.session:
         return redirect('login')
     return render(request, 'inventario/entrada_carga.html')
+
+
+def api_produto_por_codigo(request):
+    codigo = request.GET.get('codigo', '').strip()
+    produto = Produtos.objects.filter(cod_barras=codigo).first()
+    if produto:
+        return JsonResponse({
+            'status': 'ok',
+            'id': produto.id,
+            'nome': produto.nome
+        })
+    return JsonResponse({'status': 'erro', 'mensagem': 'Produto não cadastrado!'})
+
+
+def api_efetivar_entrada(request):
+    if request.method == 'POST':
+        try:
+            dados = json.loads(request.body)
+            itens = dados.get('itens', [])
+
+            with transaction.atomic():
+                for item in itens:
+                    produto_id = item.get('id')
+                    qtd_a_entrar = int(item.get('qtd', 0))
+
+                    if qtd_a_entrar > 0:
+                        produto = get_object_or_404(Produtos, id=produto_id)
+                        produto.estoque_atual += qtd_a_entrar
+                        produto.save()
+
+            return JsonResponse({'status': 'sucesso'})
+        except Exception as e:
+            return JsonResponse({'status': 'erro', 'mensagem': str(e)})
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido.'})
 
 
 # ==========================================
@@ -258,7 +293,6 @@ def salvar_edicao_cliente(request):
         cliente.telefone = request.POST.get('telefone', '')
         cliente.cpf = request.POST.get('cpf', '')
 
-        # Coleta das novas propriedades opcionais de endereço estruturado
         cliente.cep = request.POST.get('cep', '')
         cliente.rua = request.POST.get('rua', '')
         cliente.numero = request.POST.get('numero', '')
@@ -344,7 +378,7 @@ def salvar_familia(request):
             familia = get_object_or_404(Familia, id=familia_id)
             familia.nome = nome
             familia.save()
-            messages.success(request, f"Família '{nome}' atualizada!")
+            messages.success(request, f"Família '{nome}' updated successfully!")
         else:
             Familia.objects.create(nome=nome)
             messages.success(request, f"Família '{nome}' cadastrada!")
@@ -395,6 +429,7 @@ def tela_relatorios(request):
         'vendas': vendas_todas,
         'vendedores': Usuarios.objects.all(),
         'filtros': {
+            'vendedor': seller_filter if (vendedor_filtro) else '',
             'vendedor': vendedor_filtro,
             'status': status_filtro,
         },
@@ -535,6 +570,7 @@ def salvar_configuracao_pontos(request):
         pontos = int(request.POST.get('pontos_necessarios_resgate', 1))
 
         config, created = ConfiguracaoPontos.objects.get_or_create(tipo_usuario=tipo)
+        config.pontos_necessarios_resgate = points if (pontos) else 1
         config.pontos_necessarios_resgate = pontos
         config.valor_resgate_reais = 1.00
         config.save()

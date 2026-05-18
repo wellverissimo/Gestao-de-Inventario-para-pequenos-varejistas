@@ -1,115 +1,133 @@
 {% extends 'inventario/base.html' %}
 
 {% block content %}
-
-<form method="GET" class="card p-3 mb-4 shadow-sm border-0 bg-light">
-    <div class="row g-2 align-items-end">
-        <div class="col-md-4">
-            <label class="form-label small fw-bold text-muted">🧑‍💼 Selecionar Vendedor</label>
-            <select name="vendedor" class="form-select border-primary">
-                <option value="">Todos os Vendedores</option>
-                {% for vend in vendedores %}
-                    <option value="{{ vend.login }}" {% if filtros.vendedor == vend.login %}selected{% endif %}>{{ vend.login }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-4">
-            <label class="form-label small fw-bold text-muted">📌 Filtrar por Status</label>
-            <select name="status" class="form-select border-primary">
-                <option value="">Todos (Vendas e Orçamentos)</option>
-                <option value="VENDA" {% if filtros.status == 'VENDA' %}selected{% endif %}>Somente Vendas Finalizadas</option>
-                <option value="ORCAMENTO" {% if filtros.status == 'ORCAMENTO' %}selected{% endif %}>Somente Orçamentos</option>
-            </select>
-        </div>
-        <div class="col-md-4">
-            <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">
-                🔍 Aplicar Filtros
-            </button>
-        </div>
-    </div>
-</form>
+<div class="mb-4">
+    <h3 class="fw-bold text-secondary"><i class="bi bi-bar-chart-line-fill"></i> Relatórios e Histórico de Vendas</h3>
+    <p class="text-muted small">Acompanhe os indicadores financeiros da JB Tintas, filtre registros e faça a emissão de cupons térmicos ou folhas A4.</p>
+</div>
 
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <div class="card shadow-sm border-0 bg-success text-white text-center p-3 h-100">
-            <small class="opacity-75 fw-bold">Faturamento (Só Vendas)</small>
-            <h2 class="fw-bold mt-2">R$ {{ metricas.total_liquido|floatformat:2 }}</h2>
+        <div class="card shadow-sm border-0 bg-success text-white h-100">
+            <div class="card-body">
+                <span class="small opacity-75 fw-bold">💰 FATURAMENTO LÍQUIDO</span>
+                <h3 class="fw-bold mt-2 mb-0">R$ {{ metricas.total_liquido|floatformat:2 }}</h3>
+            </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card shadow-sm border-0 bg-dark text-white text-center p-3 h-100">
-            <small class="opacity-75 fw-bold">Qtd Vendas</small>
-            <h2 class="fw-bold mt-2">{{ metricas.qtd_vendas }}</h2>
+        <div class="card shadow-sm border-0 bg-dark text-white h-100">
+            <div class="card-body">
+                <span class="small opacity-75 fw-bold">📦 QUANTIDADE DE VENDAS</span>
+                <h3 class="fw-bold mt-2 mb-0">{{ metricas.qtd_vendas }}</h3>
+            </div>
         </div>
     </div>
-
     <div class="col-md-3">
-        <div class="card shadow-sm border-0 bg-warning text-dark text-center p-3 h-100">
-            <small class="opacity-75 fw-bold">Qtd Orçamentos</small>
-            <h2 class="fw-bold mt-2">{{ metricas.qtd_orcamentos }}</h2>
+        <div class="card shadow-sm border-0 bg-info text-dark h-100">
+            <div class="card-body">
+                <span class="small opacity-75 fw-bold">📝 ORÇAMENTOS SALVOS</span>
+                <h3 class="fw-bold mt-2 mb-0">{{ metricas.qtd_orcamentos }}</h3>
+            </div>
         </div>
     </div>
-
     <div class="col-md-3">
-        <div class="card shadow-sm border-0 bg-info text-dark text-center p-3 h-100">
-            <small class="opacity-75 fw-bold">Ticket Médio (Vendas)</small>
-            <h2 class="fw-bold mt-2">R$ {{ metricas.ticket_medio|floatformat:2 }}</h2>
+        <div class="card shadow-sm border-0 bg-warning text-dark h-100">
+            <div class="card-body">
+                <span class="small opacity-75 fw-bold">📊 TICKET MÉDIO</span>
+                <h3 class="fw-bold mt-2 mb-0">R$ {{ metricas.ticket_medio|floatformat:2 }}</h3>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
-        <span>📋 Histórico de Movimentações Recentes</span>
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body bg-light">
+        <form method="GET" action="." class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted">Filtrar por Vendedor</label>
+                <select name="vendedor" class="form-select">
+                    <option value="">-- Todos os Vendedores --</option>
+                    {% for v in vendedores %}
+                        <option value="{{ v.login }}" {% if filtros.vendedor == v.login %}selected{% endif %}>{{ v.login }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted">Tipo de Documento</label>
+                <select name="status" class="form-select">
+                    <option value="">-- Todos os Status --</option>
+                    <option value="VENDA" {% if filtros.status == 'VENDA' %}selected{% endif %}>💰 Apenas Vendas Concluídas</option>
+                    <option value="ORCAMENTO" {% if filtros.status == 'ORCAMENTO' %}selected{% endif %}>📋 Apenas Orçamentos</option>
+                </select>
+            </div>
+
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">
+                    🔍 Filtrar Registros
+                </button>
+                <a href="{% url 'tela_relatorios' %}" class="btn btn-outline-secondary w-50">
+                    Limpar
+                </a>
+            </div>
+        </form>
     </div>
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light text-center">
-                <tr>
-                    <th>Data</th>
-                    <th>Status</th> <th>Vendedor</th>
-                    <th>Cliente / Indicante</th>
-                    <th>Valor Final</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody class="text-center">
-                {% for v in vendas %}
-                <tr>
-                    <td class="text-muted small">{{ v.data_venda|date:"d/m/Y H:i" }}</td>
+</div>
 
-                    <td>
-                        {% if v.status == 'VENDA' %}
-                            <span class="badge bg-success px-3 py-2">VENDA</span>
-                        {% else %}
-                            <span class="badge bg-info text-dark px-3 py-2">ORÇAMENTO</span>
-                        {% endif %}
-                    </td>
-
-                    <td class="fw-bold text-secondary">{{ v.vendedor }}</td>
-
-                    <td>
-                        <div class="text-dark">{{ v.cliente|default:"Consumidor" }}</div>
-                        {% if v.indicante %}
-                            <small class="text-muted">👷 Ind: {{ v.indicante }}</small>
-                        {% endif %}
-                    </td>
-
-                    <td class="fw-bold text-dark fs-5">R$ {{ v.valor_total }}</td>
-                    <td>
-                        <div class="d-flex justify-content-center gap-1">
-                            <a href="{% url 'imprimir_cupom' v.id %}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Imprimir Cupom Térmico">🧾 Cupom</a>
-                            <a href="{% url 'imprimir_cupom_a4' v.id %}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Imprimir A4">📄 A4</a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center text-muted py-4">Nenhuma movimentação encontrada com os filtros atuais.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-dark text-white fw-bold">📋 Histórico de Operações Encontradas</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle text-center mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="80">Código</th>
+                        <th>Data/Hora</th>
+                        <th>Vendedor</th>
+                        <th>Cliente Atendido</th>
+                        <th>Tipo</th>
+                        <th>Valor Total</th>
+                        <th width="240">Imprimir Documento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in vendas %}
+                    <tr>
+                        <td><span class="badge bg-secondary">#{{ v.id }}</span></td>
+                        <td class="text-muted">{{ v.data_venda|date:"d/m/Y H:i" }}</td>
+                        <td><strong>{{ v.vendedor|upper }}</strong></td>
+                        <td class="text-start">{{ v.cliente|default:"Consumidor Padrão"|upper }}</td>
+                        <td>
+                            {% if v.status == 'VENDA' %}
+                                <span class="badge bg-success px-2 py-1">💰 VENDA</span>
+                            {% else %}
+                                <span class="badge bg-info text-dark px-2 py-1">📋 ORÇAMENTO</span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold text-dark">R$ {{ v.valor_total|floatformat:2 }}</td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'imprimir_cupom' v.id %}" target="_blank" class="btn btn-sm btn-outline-dark px-2">
+                                    <i class="bi bi-printer-fill"></i> Bobina
+                                </a>
+                                <a href="{% url 'imprimir_cupom_a4' v.id %}" target="_blank" class="btn btn-sm btn-outline-secondary px-2">
+                                    <i class="bi bi-file-earmark-pdf-fill"></i> Folha A4
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-muted text-center py-5">
+                            <i class="bi bi-emoji-frown fs-2 d-block mb-2"></i>
+                            Nenhuma venda ou orçamento encontrado para os filtros selecionados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
