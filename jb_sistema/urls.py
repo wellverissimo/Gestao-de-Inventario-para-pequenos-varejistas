@@ -41,14 +41,19 @@ urlpatterns = [
     path('gerencia/auxiliares/familia/salvar/', views.salvar_familia, name='salvar_familia'),
     path('gerencia/auxiliares/familia/excluir/<int:id>/', views.excluir_familia, name='excluir_familia'),
 
-    # 📄 Relatórios e Impressão (Ajustado para o que o botão do PDV espera)
+    # 📄 Relatórios e Impressão
     path('gerencia/relatorios/', views.tela_relatorios, name='tela_relatorios'),
     path('venda/cupom/<int:id>/', views.imprimir_cupom, name='imprimir_cupom'),
     path('venda/cupom-a4/<int:id>/', views.imprimir_cupom_a4, name='imprimir_cupom_a4'),
 
-    # 🔄 Rotas de Compatibilidade (Fallbacks)
+    # 🔄 ROTAS DE COMPATIBILIDADE (Fallbacks e Soluções de Cache)
     path('cupom/<int:id>/', views.imprimir_cupom),
-    path('cupom_a4/<int:id>/', views.imprimir_cupom_a4), # <-- O Erro estava aqui: alterado de cupom-a4 para cupom_a4
+    path('cupom_a4/<int:id>/', views.imprimir_cupom_a4),
+
+    # --- AQUI ESTÁ A MAGIA QUE RESOLVE O SEU PROBLEMA ---
+    # Aceitamos os pedidos com underline para enganar o cache do navegador!
+    path('api/produto_por_codigo/', views.api_produto_por_codigo),
+    path('api/efetivar_entrada/', views.api_efetivar_entrada),
 
     path('gerencia/colaboradores/', views.tela_colaboradores, name='tela_colaboradores'),
     path('gerencia/colaboradores/salvar/', views.salvar_colaborador, name='salvar_colaborador'),
