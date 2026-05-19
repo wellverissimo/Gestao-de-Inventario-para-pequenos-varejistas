@@ -30,6 +30,10 @@ urlpatterns = [
     # 👥 Clientes
     path('clientes/', views.tela_consultar_clientes, name='tela_consultar_clientes'),
     path('clientes/editar/', views.salvar_edicao_cliente, name='salvar_edicao_cliente'),
+
+    # --- A LINHA NOVA ENTRA AQUI ---
+    path('clientes/excluir/<int:id>/', views.excluir_cliente, name='excluir_cliente'),
+
     path('api/historico-cliente/', views.api_historico_cliente, name='api_historico_cliente'),
 
     # ⚙️ Gerência de Auxiliares

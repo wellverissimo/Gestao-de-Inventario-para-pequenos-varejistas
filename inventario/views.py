@@ -323,6 +323,23 @@ def api_historico_cliente(request):
     return JsonResponse({'historico': historico})
 
 
+def excluir_cliente(request, id):
+    # Proteção: só permite excluir se estiver logado
+    if 'usuario_logado' not in request.session:
+        return redirect('login')
+
+    try:
+        # Busca o cliente pelo ID e exclui
+        # (Se o seu modelo se chamar apenas 'Cliente' no singular, mude abaixo)
+        cliente = Clientes.objects.get(id=id)
+        cliente.delete()
+    except Exception as e:
+        print(f"Erro ao excluir cliente: {e}")
+
+    # Redireciona de volta para a tela de clientes após excluir
+    return redirect('tela_consultar_clientes')
+
+
 # ==========================================
 # ⚙️ SUBMENUS AUXILIARES SEPARADOS
 # ==========================================

@@ -180,8 +180,12 @@
         mHist.show();
         document.getElementById('listaHist').innerHTML = "<tr><td colspan='4'>Buscando compras...</td></tr>";
 
-        fetch(`/api/historico_cliente/?nome=${encodeURIComponent(nome)}`)
-            .then(r => r.json())
+        // AQUI ESTÁ A CORREÇÃO MÁGICA: historico-cliente (com traço)
+        fetch(`/api/historico-cliente/?nome=${encodeURIComponent(nome)}`)
+            .then(r => {
+                if(!r.ok) throw new Error("Erro na rota de histórico");
+                return r.json();
+            })
             .then(d => {
                 let h = '';
                 if(d.historico.length === 0) {
@@ -197,6 +201,10 @@
                     });
                 }
                 document.getElementById('listaHist').innerHTML = h;
+            })
+            .catch(e => {
+                document.getElementById('listaHist').innerHTML = "<tr><td colspan='4' class='text-danger'>Erro ao buscar histórico.</td></tr>";
+                console.error(e);
             });
     }
 
