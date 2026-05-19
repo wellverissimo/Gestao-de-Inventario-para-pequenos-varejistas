@@ -6,7 +6,7 @@ from django.db import transaction
 from django.db.models import Q
 from .models import Produtos, Clientes, Vendas, Familia, Marca, ConfiguracaoPontos, Usuarios
 from . import services
-
+from django.contrib import messages  # Certifique-se de que o import de mensagens existe no topo do arquivo
 
 # ==========================================
 # 🔐 AUTENTICAÇÃO (LOGIN / LOGOUT)
@@ -584,13 +584,23 @@ def tela_manutencao_pontos(request):
 def salvar_configuracao_pontos(request):
     if request.method == 'POST':
         tipo = request.POST.get('tipo_usuario')
-        pontos = int(request.POST.get('pontos_necessarios_resgate', 1))
 
+        # Captura o valor do POST com segurança. Se vier vazio, assume 1 como padrão.
+        pontos_raw = request.POST.get('pontos_necessarios_resgate', '1')
+        try:
+            pontos = int(pontos_raw) if pontos_raw.strip() != "" else 1
+        except ValueError:
+            pontos = 1
+
+        # Busca a configuração existente ou cria uma nova para o tipo de usuário
         config, created = ConfiguracaoPontos.objects.get_or_create(tipo_usuario=tipo)
-        config.pontos_necessarios_resgate = points if (pontos) else 1
+
+        # CORREÇÃO: Variável ajustada de 'points' para 'pontos' (sem linhas duplicadas)
         config.pontos_necessarios_resgate = pontos
         config.valor_resgate_reais = 1.00
         config.save()
 
-        messages.success(request, f"Regras de pontuação para {tipo.lower()} salvas!")
+        # Mensagem de sucesso para o operador
+        messages.success(request, f"Regras de pontuação para {tipo.lower()} salvas com sucesso!")
+
     return redirect('tela_manutencao_pontos')
