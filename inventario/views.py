@@ -7,30 +7,50 @@ from django.db.models import Q
 from .models import Produtos, Clientes, Vendas, Familia, Marca, ConfiguracaoPontos, Usuarios
 from . import services
 from django.contrib import messages  # Certifique-se de que o import de mensagens existe no topo do arquivo
+from django.shortcuts import render, redirect
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404, render
 
 # ==========================================
 # 🔐 AUTENTICAÇÃO (LOGIN / LOGOUT)
 # ==========================================
 
 def tela_login(request):
+    # Proteção: Se o usuário já estiver logado, manda direto para o painel principal
+    if 'usuario_logado' in request.session:
+        return redirect('painel_principal')
+
     if request.method == 'POST':
         login_input = request.POST.get('login', '').strip()
         senha_input = request.POST.get('senha', '').strip()
 
-        colaborador = Usuarios.objects.filter(login=login_input, senha=senha_input).first()
-        if colaborador:
-            request.session['usuario_logado'] = colaborador.login
-            request.session['perfil_usuario'] = colaborador.perfil
-            messages.success(request, f"Bem-vindo de volta, {colaborador.login}!")
-            return redirect('painel_principal')
-        else:
-            messages.error(request, "Usuário ou senha incorretos.")
+        try:
+            # Busca o colaborador no banco de dados
+            colaborador = Usuarios.objects.filter(login=login_input, senha=senha_input).first()
+
+            if colaborador:
+                # Registra as credenciais na sessão com segurança
+                request.session['usuario_logado'] = colaborador.login
+                request.session['perfil_usuario'] = colaborador.perfil
+
+                messages.success(request, f"Bem-vindo de volta, {colaborador.login}!")
+                return redirect('painel_principal')
+            else:
+                messages.error(request, "Usuário ou senha incorretos.")
+
+        except Exception as e:
+            print(f"Erro crítico no login: {e}")
+            messages.error(request, "Ocorreu um erro interno ao tentar realizar o login. Tente novamente.")
+
     return render(request, 'inventario/login.html')
 
 
 def logout(request):
+    # Limpa toda a sessão do usuário com segurança
     request.session.flush()
+    # Manda de volta para a tela de login
     return redirect('login')
+
 
 
 # ==========================================
@@ -415,39 +435,44 @@ def excluir_familia(request, id):
 # ==========================================
 
 def tela_relatorios(request):
+    # Proteção de acesso: se não estiver logado, vai para o login
     if 'usuario_logado' not in request.session:
         return redirect('login')
 
+    # Captura os filtros que vieram do formulário da tela
     vendedor_filtro = request.GET.get('vendedor', '')
     status_filtro = request.GET.get('status', '')
 
+    # Começa trazendo todas as vendas ordenadas pelas mais recentes
     vendas_todas = Vendas.objects.all().order_by('-id')
 
+    # Aplica os filtros apenas se o usuário escolheu alguma opção na tela
     if vendedor_filtro:
-        vendas_todas = vendas_todas.filter(vendedor=vendedor_filtro)
+        vendas_todas = vendas_todas.filter(vendedor__iexact=vendedor_filtro) # __iexact ignora maiúsculas/minúsculas
     if status_filtro:
         vendas_todas = vendas_todas.filter(status=status_filtro)
 
+    # Separa o que é Venda Finalizada e o que é Orçamento para as métricas
     vendas_confirmadas = vendas_todas.filter(status='VENDA')
     orcamentos_todos = vendas_todas.filter(status='ORCAMENTO')
 
-    faturamento = 0.0
-    for v in vendas_confirmadas:
-        try:
-            faturamento += float(v.valor_total)
-        except (ValueError, TypeError):
-            pass
+    # Faz a soma do faturamento direto no banco de dados (muito mais rápido e seguro)
+    resultado_soma = vendas_confirmadas.aggregate(total=Sum('valor_total'))
+    faturamento = float(resultado_soma['total'] or 0.0)
 
+    # Contagem dos cards de métricas
     qtd_vendas = vendas_confirmadas.count()
     qtd_orcamentos = orcamentos_todos.count()
+
+    # Cálculo do ticket médio prevenindo divisão por zero
     ticket_medio = faturamento / qtd_vendas if qtd_vendas > 0 else 0.0
 
+    # Monta o contexto para enviar os dados corrigidos para o HTML
     context = {
         'vendas': vendas_todas,
         'vendedores': Usuarios.objects.all(),
         'filtros': {
-            'vendedor': seller_filter if (vendedor_filtro) else '',
-            'vendedor': vendedor_filtro,
+            'vendedor': vendedor_filtro,  # CORREÇÃO: Removido o 'seller_filter' que causava NameError
             'status': status_filtro,
         },
         'metricas': {
@@ -462,20 +487,91 @@ def tela_relatorios(request):
 
 def imprimir_cupom(request, id):
     venda = get_object_or_404(Vendas, id=id)
+
     try:
-        carrinho = json.loads(venda.cupom_texto)
-    except:
+        carrinho = json.loads(venda.cupom_texto) if venda.cupom_texto else []
+    except (ValueError, TypeError):
         carrinho = []
-    return render(request, 'inventario/cupom.html', {'venda': venda, 'carrinho': carrinho})
+
+    subtotal_bruto = 0.0
+
+    # Faz o cálculo matemático para cada item do carrinho antes de enviar para a tela
+    for item in carrinho:
+        preco = float(item.get('preco', 0))
+        qtd = int(item.get('qtd', 1))
+
+        # Cria a variável 'total_linha' que o HTML está pedindo
+        item['total_linha'] = preco * qtd
+
+        # Soma tudo para gerar o 'subtotal_bruto'
+        subtotal_bruto += item['total_linha']
+
+    contexto = {
+        'venda': venda,
+        'carrinho': carrinho,
+        'itens': carrinho,
+        'subtotal_bruto': subtotal_bruto  # Enviamos o subtotal calculado!
+    }
+    return render(request, 'inventario/cupom.html', contexto)
 
 
 def imprimir_cupom_a4(request, id):
     venda = get_object_or_404(Vendas, id=id)
+
     try:
-        carrinho = json.loads(venda.cupom_texto)
-    except:
+        carrinho = json.loads(venda.cupom_texto) if venda.cupom_texto else []
+    except (ValueError, TypeError):
         carrinho = []
-    return render(request, 'inventario/cupom_a4.html', {'venda': venda, 'carrinho': carrinho})
+
+    subtotal_bruto = 0.0
+
+    # Faz o cálculo matemático para cada item do carrinho antes de enviar para a tela A4
+    for item in carrinho:
+        preco = float(item.get('preco', 0))
+        qtd = int(item.get('qtd', 1))
+
+        # Cria a variável 'total_linha' que o HTML A4 está pedindo
+        item['total_linha'] = preco * qtd
+
+        # Soma tudo para gerar o 'subtotal_bruto' A4
+        subtotal_bruto += item['total_linha']
+
+    contexto = {
+        'venda': venda,
+        'carrinho': carrinho,
+        'itens': carrinho,
+        'subtotal_bruto': subtotal_bruto  # Enviamos o subtotal calculado!
+    }
+    return render(request, 'inventario/cupom_a4.html', contexto)
+
+
+def cancelar_venda(request):
+    if request.method == 'POST':
+        venda_id = request.POST.get('venda_id')
+        login_auth = request.POST.get('login_autorizador', '').strip()
+        senha_auth = request.POST.get('senha_autorizador', '').strip()
+        motivo = request.POST.get('motivo', '').strip()
+
+        # 1. Verifica no banco de dados se o usuário e a senha estão corretos
+        autorizador = Usuarios.objects.filter(login=login_auth, senha=senha_auth).first()
+
+        if autorizador:
+            try:
+                # 2. Encontra a venda e muda o status
+                venda = Vendas.objects.get(id=venda_id)
+                venda.status = 'CANCELADA'
+                venda.save()
+
+                # Mensagem de sucesso registrando quem cancelou e o motivo
+                messages.success(request, f"✅ Venda #{venda_id} cancelada por {autorizador.login}. Motivo: {motivo}")
+            except Exception as e:
+                messages.error(request, f"Erro ao cancelar o documento: {e}")
+        else:
+            # Se a senha estiver errada, bloqueia a ação
+            messages.error(request, "❌ Cancelamento Negado: Login ou Senha do autorizador estão incorretos.")
+
+    return redirect('tela_relatorios')
+
 
 
 # ==========================================

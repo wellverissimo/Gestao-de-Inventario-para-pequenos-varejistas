@@ -48,7 +48,8 @@ urlpatterns = [
     # 📄 Relatórios e Impressão
     path('gerencia/relatorios/', views.tela_relatorios, name='tela_relatorios'),
     path('venda/cupom/<int:id>/', views.imprimir_cupom, name='imprimir_cupom'),
-    path('venda/cupom-a4/<int:id>/', views.imprimir_cupom_a4, name='imprimir_cupom_a4'),
+    path('gerencia/vendas/cancelar/', views.cancelar_venda, name='cancelar_venda'),
+    path('venda/cupom-a4/<int:id>/', views.imprimir_cupom_a4, name='imprimir_cupom_a4'), # <-- VÍRGULA ADICIONADA AQUI
 
     # 🔄 ROTAS DE COMPATIBILIDADE (Fallbacks e Soluções de Cache)
     path('cupom/<int:id>/', views.imprimir_cupom),
