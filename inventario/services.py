@@ -2,7 +2,6 @@ from django.db import transaction
 from .models import Clientes, Produtos, Vendas, ConfiguracaoPontos
 import json
 
-
 def calcular_resgate_pontos(nome_cliente):
     if not nome_cliente:
         return {'pontos': 0, 'valor_desconto': 0.0, 'mensagem': 'Cliente não informado.'}
@@ -60,9 +59,10 @@ def processar_nova_venda(dados_venda, carrinho, status_venda, pontos_resgatados)
         # 2. Faz a baixa automática dos produtos no estoque
         for item in carrinho:
             p_id = item.get('id') or item.get('produto_id')
-            p_qtd = int(item.get('quantidade', 0))
+            # 🔥 CORREÇÃO: O HTML envia 'qtd', não 'quantidade'!
+            p_qtd = int(item.get('qtd', 0))
 
-            if p_id:
+            if p_id and p_qtd > 0:
                 produto = Produtos.objects.select_for_update().filter(id=p_id).first()
                 if produto:
                     produto.estoque_atual -= p_qtd

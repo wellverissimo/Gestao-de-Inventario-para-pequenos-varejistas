@@ -19,8 +19,9 @@
             <thead class="table-light">
                 <tr>
                     <th class="text-start">Produto</th>
-                    <th>Marca</th>
-                    <th>Status</th> <th>Custo</th>
+                    <th>Família</th> <th>Marca</th>
+                    <th>Status</th>
+                    <th>Custo</th>
                     <th>Venda</th>
                     <th>Estoque</th>
                     <th>Ações</th>
@@ -33,6 +34,9 @@
                         <strong style="color: #101820;">{{ p.nome }}</strong><br>
                         <small style="color: #888B8D;">{{ p.cod_barras|default:"---" }}</small>
                     </td>
+
+                    <td><span class="badge" style="background-color: #adb5bd;">{{ p.familia.nome|default:"---" }}</span></td>
+
                     <td><span class="badge" style="background-color: #888B8D;">{{ p.marca.nome|default:"---" }}</span></td>
 
                     <td>
@@ -72,7 +76,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7" class="py-5" style="color: #888B8D;">Nenhum produto encontrado.</td></tr>
+                <tr><td colspan="8" class="py-5" style="color: #888B8D;">Nenhum produto encontrado.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

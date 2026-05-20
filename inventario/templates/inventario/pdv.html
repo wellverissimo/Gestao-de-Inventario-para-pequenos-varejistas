@@ -277,7 +277,7 @@
         let economiaTotal = subtotalOriginal - valorFinal;
 
         document.getElementById('txtSubtotal').innerText = `R$ ${subtotalOriginal.toFixed(2).replace('.', ',')}`;
-        document.getElementById('txtDesconto').innerText = `- R$ ${economiaTotal > 0 ? economyTotal.toFixed(2).replace('.', ',') : '0,00'}`;
+        document.getElementById('txtDesconto').innerText = `- R$ ${economiaTotal > 0 ? economiaTotal.toFixed(2).replace('.', ',') : '0,00'}`;
         document.getElementById('txtTotalCompra').innerText = `R$ ${valorFinal.toFixed(2).replace('.', ',')}`;
     }
 
@@ -322,13 +322,13 @@
         }
     }
 
-    function aplicarDescontoPontos(points, valorDesconto) {
+    function aplicarDescontoPontos(pontos, valorDesconto) {
         let totalComDescontosItens = carrinho.reduce((s, i) => s + (i.preco_desconto * i.qtd), 0);
         if (totalComDescontosItens <= 0) return alert("Adicione produtos no carrinho antes de aplicar o desconto!");
 
         if (valorDesconto > totalComDescontosItens) valorDesconto = totalComDescontosItens;
 
-        pointsToRedeem = points;
+        pointsToRedeem = pontos;
 
         let inputFinal = document.getElementById('inputValorFinal');
         inputFinal.value = (totalComDescontosItens - valorDesconto).toFixed(2);
@@ -339,7 +339,7 @@
         areaResgate.innerHTML = `
             <div class="alert p-2 mb-0 shadow-sm text-center text-white" style="background-color: #00C853; border: none;">
                 <strong>✅ R$ ${valorDesconto.toFixed(2).replace('.', ',')} Aplicados!</strong><br>
-                <small>(${points} pontos serão debitados na finalização)</small>
+                <small>(${pontos} pontos serão debitados na finalização)</small>
             </div>
         `;
     }
@@ -358,7 +358,7 @@
             status: statusSelecionado,
             valor_final: valorFinal,
             desconto: descontoGlobalAdicional > 0 ? descontoGlobalAdicional : 0,
-            points_resgatados: pointsToRedeem,
+            pontos_resgatados: pointsToRedeem,
             carrinho: carrinho
         };
 
@@ -368,10 +368,14 @@
             body: JSON.stringify(pacote)
         }).then(res => res.json()).then(data => {
             if (data.status === 'sucesso') {
+
+                // 🔥 AQUI ESTÁ A CORREÇÃO: Alerta de sucesso adicionado!
                 if(statusSelecionado === 'ORCAMENTO') {
                     alert('📝 Orçamento gerado com sucesso! Nenhum estoque ou ponto foi alterado.');
+                } else {
+                    alert('✅ Venda finalizada com sucesso! O estoque foi deduzido e a pontuação atualizada.');
                 }
-                // --- ATUALIZAÇÃO DEFINITIVA: JANELA MAIOR COM 1024x850, SCROLLBARS E REDIMENSIONÁVEL ---
+
                 window.open(`/venda/cupom/${data.venda_id}/`, '_blank', 'width=1024,height=850,scrollbars=yes,resizable=yes');
                 location.reload();
             } else {
